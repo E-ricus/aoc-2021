@@ -1,4 +1,4 @@
-pub fn run_first_day() {
+pub fn run_day_one() {
     let list = crate::lines_from_file("inputs/day1.txt").expect("Could not load lines");
     let measures = list
         .into_iter()
