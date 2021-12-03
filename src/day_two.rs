@@ -1,48 +1,55 @@
-pub fn run_day_two() {
-    let list = crate::lines_from_file("inputs/day2.txt").expect("Could not load lines");
-    let movements = list
-        .into_iter()
-        .map(|s| {
-            let mut parts = s.split(' ');
-            (
-                parts.next().unwrap().to_string(),
-                parts.next().unwrap().parse::<u32>().unwrap(),
-            )
+use anyhow::Result;
+
+pub fn run_day_two() -> Result<()> {
+    let movements: Vec<Movements> = std::fs::read_to_string("inputs/day2.txt")?
+        .lines()
+        .filter_map(|s| match s.split_once(' ') {
+            Some(("forward", x)) => Some(Movements::Forward(x.parse().ok()?)),
+            Some(("down", x)) => Some(Movements::Down(x.parse().ok()?)),
+            Some(("up", x)) => Some(Movements::Up(x.parse().ok()?)),
+            _ => None,
         })
-        .collect::<Vec<(String, u32)>>();
+        .collect();
+
     let pos = positions(movements.clone());
     println!("The position after movements is: {}", pos);
     let pos = complex_positions(movements);
     println!("The position after movements is: {}", pos);
+    Ok(())
 }
 
-fn positions(movements: Vec<(String, u32)>) -> u32 {
+#[derive(Debug, Clone)]
+enum Movements {
+    Forward(u32),
+    Down(u32),
+    Up(u32),
+}
+
+fn positions(movements: Vec<Movements>) -> u32 {
     let mut x_pos = 0;
     let mut y_pos = 0;
-    for (movement, x) in movements {
-        match movement.as_str() {
-            "forward" => x_pos += x,
-            "down" => y_pos += x,
-            "up" => y_pos -= x,
-            _ => println!("invalid movement"),
+    for movement in movements {
+        match movement {
+            Movements::Forward(x) => x_pos += x,
+            Movements::Down(x) => y_pos += x,
+            Movements::Up(x) => y_pos -= x,
         }
     }
     x_pos * y_pos
 }
 
-fn complex_positions(movements: Vec<(String, u32)>) -> u32 {
+fn complex_positions(movements: Vec<Movements>) -> u32 {
     let mut x_pos = 0;
     let mut y_pos = 0;
     let mut aim = 0;
-    for (movement, x) in movements {
-        match movement.as_str() {
-            "forward" => {
+    for movement in movements {
+        match movement {
+            Movements::Forward(x) => {
                 x_pos += x;
                 y_pos += aim * x;
             }
-            "down" => aim += x,
-            "up" => aim -= x,
-            _ => println!("invalid movement"),
+            Movements::Down(x) => aim += x,
+            Movements::Up(x) => aim -= x,
         }
     }
     x_pos * y_pos
@@ -51,12 +58,12 @@ fn complex_positions(movements: Vec<(String, u32)>) -> u32 {
 #[test]
 fn test_positions() {
     let movements = vec![
-        ("forward".to_string(), 5),
-        ("down".to_string(), 5),
-        ("forward".to_string(), 8),
-        ("up".to_string(), 3),
-        ("down".to_string(), 8),
-        ("forward".to_string(), 2),
+        Movements::Forward(5),
+        Movements::Down(5),
+        Movements::Forward(8),
+        Movements::Up(3),
+        Movements::Down(8),
+        Movements::Forward(2),
     ];
     let pos = positions(movements);
     assert_eq!(pos, 150)
@@ -65,12 +72,12 @@ fn test_positions() {
 #[test]
 fn test_complex_positions() {
     let movements = vec![
-        ("forward".to_string(), 5),
-        ("down".to_string(), 5),
-        ("forward".to_string(), 8),
-        ("up".to_string(), 3),
-        ("down".to_string(), 8),
-        ("forward".to_string(), 2),
+        Movements::Forward(5),
+        Movements::Down(5),
+        Movements::Forward(8),
+        Movements::Up(3),
+        Movements::Down(8),
+        Movements::Forward(2),
     ];
     let pos = complex_positions(movements);
     assert_eq!(pos, 900)

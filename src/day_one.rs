@@ -1,13 +1,17 @@
-pub fn run_day_one() {
-    let list = crate::lines_from_file("inputs/day1.txt").expect("Could not load lines");
-    let measures = list
+use anyhow::Result;
+
+pub fn run_day_one() -> Result<()> {
+    let measures: Vec<i32> = std::fs::read_to_string("inputs/day1.txt")?
+        .lines()
         .into_iter()
-        .map(|s| s.parse::<i32>().unwrap())
-        .collect::<Vec<i32>>();
+        .filter_map(|s| s.parse().ok())
+        .collect();
+
     let count = count_increased(measures.clone());
     println!("The measures increased: {} times", count);
     let count = count_increased(clean_measures(measures));
     println!("The measures increased: {} times", count);
+    Ok(())
 }
 
 fn count_increased(measures: Vec<i32>) -> i32 {
