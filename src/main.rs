@@ -1,3 +1,4 @@
+mod day_four;
 mod day_one;
 mod day_three;
 mod day_two;
@@ -8,5 +9,6 @@ fn main() -> Result<()> {
     day_one::run_day_one()?;
     day_two::run_day_two()?;
     day_three::run_day_three()?;
+    day_four::run_day_four("inputs/day4.input")?;
     Ok(())
 }
