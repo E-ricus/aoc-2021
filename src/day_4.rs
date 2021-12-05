@@ -168,15 +168,14 @@ fn bingo_last_winner(numbers: &[u16], boards: &mut Vec<Board>) -> Option<(Board,
 }
 
 fn get_result(winner: Board, win_num: u16) -> u32 {
-    let unmarked = winner.numbers.into_iter().fold(0, |acc, b| {
-        let count: u16 = b
-            .into_iter()
-            .filter(|n| !n.is_marked())
-            .map(|n| n.num)
-            .sum();
-        acc + count
-    });
-    (win_num * unmarked as u16).into()
+    let unmarked: u16 = winner
+        .numbers
+        .into_iter()
+        .flatten()
+        .filter(|n| !n.is_marked())
+        .map(|n| n.num)
+        .sum();
+    (win_num * unmarked).into()
 }
 
 #[cfg(test)]

@@ -29,7 +29,7 @@ impl Run<Vec<Vec<char>>, isize> for Day3 {
             }
             ch
         };
-        let oxigen = binaries_for_life(input.clone(), des)?;
+        let oxigen = binaries_for_life(input.to_vec(), des)?;
         let des = |ones: u32, zeros: u32| -> char {
             let ch: char;
             if ones >= zeros {
