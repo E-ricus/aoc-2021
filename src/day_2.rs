@@ -1,10 +1,10 @@
 use anyhow::Result;
 
-use crate::runner::Day;
+use crate::runner::{Parse, Run};
 
 pub struct Day2 {}
 
-impl Day<Vec<Movements>, u32> for Day2 {
+impl Parse<Vec<Movements>, u32> for Day2 {
     fn parse_input(input: &str) -> Result<Vec<Movements>> {
         let r = input
             .lines()
@@ -17,7 +17,9 @@ impl Day<Vec<Movements>, u32> for Day2 {
             .collect();
         Ok(r)
     }
+}
 
+impl Run<Vec<Movements>, u32> for Day2 {
     fn part_one(input: &Vec<Movements>) -> Result<u32> {
         let mut x_pos = 0;
         let mut y_pos = 0;
@@ -59,11 +61,11 @@ pub enum Movements {
 #[cfg(test)]
 mod tests_day2 {
     use super::*;
-    use crate::runner::Runner;
+    use crate::runner::Executor;
     use anyhow::Result;
 
     #[test]
-    fn run_test() -> Result<()> {
+    fn test_run() -> Result<()> {
         let (r1, r2) = Day2::run("inputs/day2.test")?;
         assert_eq!(r1, 150);
         assert_eq!(r2, 900);

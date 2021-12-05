@@ -1,15 +1,17 @@
 use anyhow::Result;
 
-use crate::runner::Day;
+use crate::runner::{Parse, Run};
 
 pub struct Day3 {}
 
-impl Day<Vec<Vec<char>>, isize> for Day3 {
+impl Parse<Vec<Vec<char>>, isize> for Day3 {
     fn parse_input(input: &str) -> Result<Vec<Vec<char>>> {
         let r = input.lines().map(|s| s.chars().collect()).collect();
         Ok(r)
     }
+}
 
+impl Run<Vec<Vec<char>>, isize> for Day3 {
     fn part_one(input: &Vec<Vec<char>>) -> Result<isize> {
         let (gama, epsilon) = binaries_for_power(input)?;
         let gama = isize::from_str_radix(gama.as_str(), 2)?;
@@ -89,11 +91,10 @@ fn binaries_for_life(mut input: Vec<Vec<char>>, desition: fn(u32, u32) -> char) 
 #[cfg(test)]
 mod tests_day3 {
     use super::*;
-    use crate::runner::Runner;
-    use anyhow::Result;
+    use crate::runner::Executor;
 
     #[test]
-    fn run_test() -> Result<()> {
+    fn test_run() -> Result<()> {
         let (r1, r2) = Day3::run("inputs/day3.test")?;
         assert_eq!(r1, 198);
         assert_eq!(r2, 230);

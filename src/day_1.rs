@@ -1,10 +1,10 @@
 use anyhow::Result;
 
-use crate::runner::Day;
+use crate::runner::{Parse, Run};
 
 pub struct Day1 {}
 
-impl Day<Vec<i32>, i32> for Day1 {
+impl Parse<Vec<i32>, i32> for Day1 {
     fn parse_input(input: &str) -> Result<Vec<i32>> {
         let r = input
             .lines()
@@ -13,7 +13,8 @@ impl Day<Vec<i32>, i32> for Day1 {
             .collect();
         Ok(r)
     }
-
+}
+impl Run<Vec<i32>, i32> for Day1 {
     fn part_one(input: &Vec<i32>) -> Result<i32> {
         Ok(count_increased(input.to_vec()))
     }
@@ -47,11 +48,11 @@ fn clean_measures(measures: Vec<i32>) -> Vec<i32> {
 #[cfg(test)]
 mod tests_day1 {
     use super::*;
-    use crate::runner::Runner;
+    use crate::runner::Executor;
     use anyhow::Result;
 
     #[test]
-    fn run_test() -> Result<()> {
+    fn test_run() -> Result<()> {
         let (r1, r2) = Day1::run("inputs/day1.test")?;
         assert_eq!(r1, 7);
         assert_eq!(r2, 5);
@@ -59,14 +60,14 @@ mod tests_day1 {
     }
 
     #[test]
-    fn count_increased_test() {
+    fn test_count_increased() {
         let measures = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
         let count = count_increased(measures);
         assert_eq!(7, count);
     }
 
     #[test]
-    fn clean_measures_test() {
+    fn test_clean_measunes() {
         let measures = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
         let count = clean_measures(measures);
         assert_eq!(8, count.len());
