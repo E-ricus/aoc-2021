@@ -1,37 +1,56 @@
 use anyhow::Result;
 
-pub fn run_day_four(path: &str) -> Result<(u32, u32)> {
-    let mut numbers: Vec<u16> = Vec::new();
-    let mut boards: Vec<Board> = Vec::new();
-    let mut is_first = true;
-    let mut board = Board::new();
-    let lines: Vec<String> = std::fs::read_to_string(path)?
-        .lines()
-        .map(|s| s.to_string())
-        .collect();
-    for line in lines {
-        if is_first {
-            numbers = line.split(',').filter_map(|n| n.parse().ok()).collect();
-            is_first = false;
-            continue;
-        }
+use crate::runner::{Parse, RunMut};
 
-        if line.is_empty() {
-            if !board.numbers.is_empty() {
-                boards.push(board);
-                board = Board::new();
+pub struct Day4 {}
+
+impl Parse<Bingo, u32> for Day4 {
+    fn parse_input(input: &str) -> Result<Bingo> {
+        let mut numbers: Vec<u16> = Vec::new();
+        let mut boards: Vec<Board> = Vec::new();
+        let mut is_first = true;
+        let mut board = Board::new();
+        let lines: Vec<String> = input.lines().map(|s| s.to_string()).collect();
+
+        for line in lines {
+            if is_first {
+                numbers = line.split(',').filter_map(|n| n.parse().ok()).collect();
+                is_first = false;
+                continue;
             }
-            continue;
+
+            if line.is_empty() {
+                if !board.numbers.is_empty() {
+                    boards.push(board);
+                    board = Board::new();
+                }
+                continue;
+            }
+            board.numbers_from_str(line.as_str());
         }
-        board.numbers_from_str(line.as_str());
+        boards.push(board);
+        Ok(Bingo { boards, numbers })
     }
-    boards.push(board);
-    let result_one =
-        part_one(numbers.clone(), boards.clone()).ok_or(anyhow::anyhow!("no winner"))?;
-    println!("Day four part one: {}", result_one);
-    let result_two = part_two(numbers, boards).ok_or(anyhow::anyhow!("no winner"))?;
-    println!("Day four part two: {}", result_two);
-    Ok((result_one, result_two))
+}
+
+impl RunMut<Bingo, u32> for Day4 {
+    fn part_one(input: &mut Bingo) -> Result<u32> {
+        let (winner, win_num) =
+            bingo_winner(&input.numbers, &mut input.boards).ok_or(anyhow::anyhow!("no winner"))?;
+        Ok(get_result(winner, win_num))
+    }
+
+    fn part_two(input: &mut Bingo) -> Result<u32> {
+        let (winner, win_num) = bingo_last_winner(&input.numbers, &mut input.boards)
+            .ok_or(anyhow::anyhow!("no winner"))?;
+        Ok(get_result(winner, win_num))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Bingo {
+    boards: Vec<Board>,
+    numbers: Vec<u16>,
 }
 
 #[derive(Debug, Clone)]
@@ -117,38 +136,38 @@ enum State {
     Unmarked,
 }
 
-fn bingo_winner(numbers: Vec<u16>, mut boards: Vec<Board>) -> Option<(Board, u16)> {
+fn bingo_winner(numbers: &[u16], boards: &mut Vec<Board>) -> Option<(Board, u16)> {
     for num in numbers {
         for b in boards.iter_mut() {
-            b.set_number(num);
+            b.set_number(*num);
             if b.is_winner() {
-                return Some((b.clone(), num));
+                return Some((b.clone(), *num));
             }
         }
     }
     None
 }
 
-fn bingo_last_winner(numbers: Vec<u16>, mut boards: Vec<Board>) -> Option<(Board, u16)> {
+fn bingo_last_winner(numbers: &[u16], boards: &mut Vec<Board>) -> Option<(Board, u16)> {
     let board_num = boards.len();
     let mut wins = 0;
     // let mut winners: Vec<usize> = Vec::new();
     for num in numbers {
         for b in boards.iter_mut() {
-            b.set_number(num);
+            b.set_number(*num);
             if b.is_winner() && !b.won {
                 wins += 1;
                 b.won = true;
             }
             if board_num == wins {
-                return Some((b.clone(), num));
+                return Some((b.clone(), *num));
             }
         }
     }
     None
 }
 
-fn get_result(winner: Board, win_num: u16) -> Option<u32> {
+fn get_result(winner: Board, win_num: u16) -> u32 {
     let unmarked = winner.numbers.into_iter().fold(0, |acc, b| {
         let count: u16 = b
             .into_iter()
@@ -157,22 +176,13 @@ fn get_result(winner: Board, win_num: u16) -> Option<u32> {
             .sum();
         acc + count
     });
-    Some((win_num * unmarked as u16).into())
-}
-
-fn part_one(numbers: Vec<u16>, boards: Vec<Board>) -> Option<u32> {
-    let (winner, win_num) = bingo_winner(numbers, boards)?;
-    get_result(winner, win_num)
-}
-
-fn part_two(numbers: Vec<u16>, boards: Vec<Board>) -> Option<u32> {
-    let (winner, win_num) = bingo_last_winner(numbers, boards)?;
-    get_result(winner, win_num)
+    (win_num * unmarked as u16).into()
 }
 
 #[cfg(test)]
-mod tests {
+mod tests_day4 {
     use super::*;
+    use crate::runner::MutExecutor;
 
     #[test]
     fn test_is_winner_row() {
@@ -222,221 +232,51 @@ mod tests {
         assert!(!board.is_winner());
     }
 
+    const INPUT: &str = include_str!("../inputs/day4.test");
+
     #[test]
-    fn test_bingo_winner() {
-        let numbers = vec![
-            7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19,
-            3, 26, 1,
-        ];
-        let mut boards: Vec<Board> = Vec::new();
-        let board_string = vec![
-            "22 13 17 11  0",
-            " 8  2 23  4 24",
-            "21  9 14 16  7",
-            " 6 10  3 18  5",
-            " 1 12 20 15 19",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-        let board_string = vec![
-            " 3 15  0  2 22",
-            " 9 18 13 17  5",
-            "19  8  7 25 23",
-            "20 11 10 24  4",
-            "14 21 16 12  6",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-        let board_string = vec![
-            "14 21 17 24  4",
-            "10 16 15  9 19",
-            "18  8 23 26 20",
-            "22 11 13  6  5",
-            " 2  0 12  3  7",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-
-        let winner = bingo_winner(numbers, boards);
+    fn test_bingo_winner() -> Result<()> {
+        let mut input = Day4::parse_input(INPUT)?;
+        let winner = bingo_winner(&input.numbers, &mut input.boards);
         assert!(winner.is_some());
         let (winner, num) = winner.unwrap();
         assert_eq!(winner.numbers[0][0].num, 14);
         assert_eq!(num, 24);
+        Ok(())
     }
 
     #[test]
-    fn test_part_one() {
-        let numbers = vec![
-            7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19,
-            3, 26, 1,
-        ];
-        let mut boards: Vec<Board> = Vec::new();
-        let board_string = vec![
-            "22 13 17 11  0",
-            " 8  2 23  4 24",
-            "21  9 14 16  7",
-            " 6 10  3 18  5",
-            " 1 12 20 15 19",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-        let board_string = vec![
-            " 3 15  0  2 22",
-            " 9 18 13 17  5",
-            "19  8  7 25 23",
-            "20 11 10 24  4",
-            "14 21 16 12  6",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-        let board_string = vec![
-            "14 21 17 24  4",
-            "10 16 15  9 19",
-            "18  8 23 26 20",
-            "22 11 13  6  5",
-            " 2  0 12  3  7",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-        let result = part_one(numbers, boards);
-        assert!(result.is_some());
-        assert_eq!(result, Some(4512));
+    fn test_part_one() -> Result<()> {
+        let mut input = Day4::parse_input(INPUT)?;
+        let result = Day4::part_one(&mut input)?;
+        assert_eq!(result, 4512);
+        Ok(())
     }
 
     #[test]
-    fn test_bingo_last_winner() {
-        let numbers = vec![
-            7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19,
-            3, 26, 1,
-        ];
-        let mut boards: Vec<Board> = Vec::new();
-        let board_string = vec![
-            "22 13 17 11  0",
-            " 8  2 23  4 24",
-            "21  9 14 16  7",
-            " 6 10  3 18  5",
-            " 1 12 20 15 19",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-        let board_string = vec![
-            " 3 15  0  2 22",
-            " 9 18 13 17  5",
-            "19  8  7 25 23",
-            "20 11 10 24  4",
-            "14 21 16 12  6",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-        let board_string = vec![
-            "14 21 17 24  4",
-            "10 16 15  9 19",
-            "18  8 23 26 20",
-            "22 11 13  6  5",
-            " 2  0 12  3  7",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-
-        let winner = bingo_last_winner(numbers, boards);
+    fn test_bingo_last_winner() -> Result<()> {
+        let mut input = Day4::parse_input(INPUT)?;
+        let winner = bingo_last_winner(&input.numbers, &mut input.boards);
         assert!(winner.is_some());
         let (winner, num) = winner.unwrap();
         assert_eq!(winner.numbers[0][0].num, 3);
         assert_eq!(num, 13);
+        Ok(())
     }
 
     #[test]
-    fn test_part_two() {
-        let numbers = vec![
-            7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19,
-            3, 26, 1,
-        ];
-        let mut boards: Vec<Board> = Vec::new();
-        let board_string = vec![
-            "22 13 17 11  0",
-            " 8  2 23  4 24",
-            "21  9 14 16  7",
-            " 6 10  3 18  5",
-            " 1 12 20 15 19",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-        let board_string = vec![
-            " 3 15  0  2 22",
-            " 9 18 13 17  5",
-            "19  8  7 25 23",
-            "20 11 10 24  4",
-            "14 21 16 12  6",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-        let board_string = vec![
-            "14 21 17 24  4",
-            "10 16 15  9 19",
-            "18  8 23 26 20",
-            "22 11 13  6  5",
-            " 2  0 12  3  7",
-        ];
-
-        let mut board = Board::new();
-        board_string
-            .into_iter()
-            .for_each(|s| board.numbers_from_str(s));
-        boards.push(board);
-        let result = part_two(numbers, boards);
-        assert!(result.is_some());
-        assert_eq!(result, Some(1924));
+    fn test_part_two() -> Result<()> {
+        let mut input = Day4::parse_input(INPUT)?;
+        let result = Day4::part_two(&mut input)?;
+        assert_eq!(result, 1924);
+        Ok(())
     }
 
     #[test]
     fn test_run_day_four() -> Result<()> {
-        let (result_one, result_two) = run_day_four("inputs/day4.test")?;
-        assert_eq!(result_one, 4512);
-        assert_eq!(result_two, 1924);
+        let (r1, r2) = Day4::run("inputs/day4.test")?;
+        assert_eq!(r1, 4512);
+        assert_eq!(r2, 1924);
         Ok(())
     }
 }
