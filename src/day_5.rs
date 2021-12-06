@@ -6,7 +6,7 @@ use std::cmp::Ordering;
 
 pub struct Day5 {}
 
-impl Parse<Vec<Line>, u16> for Day5 {
+impl Parse<Vec<Line>> for Day5 {
     fn parse_input(input: &str) -> Result<Vec<Line>> {
         let r = input
             .lines()

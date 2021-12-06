@@ -4,7 +4,7 @@ use crate::runner::{Parse, Run};
 
 pub struct Day3 {}
 
-impl Parse<Vec<Vec<char>>, isize> for Day3 {
+impl Parse<Vec<Vec<char>>> for Day3 {
     fn parse_input(input: &str) -> Result<Vec<Vec<char>>> {
         let r = input.lines().map(|s| s.chars().collect()).collect();
         Ok(r)

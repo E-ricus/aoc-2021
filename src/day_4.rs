@@ -4,7 +4,7 @@ use crate::runner::{Parse, RunMut};
 
 pub struct Day4 {}
 
-impl Parse<Bingo, u32> for Day4 {
+impl Parse<Bingo> for Day4 {
     fn parse_input(input: &str) -> Result<Bingo> {
         let mut numbers: Vec<u16> = Vec::new();
         let mut boards: Vec<Board> = Vec::new();
