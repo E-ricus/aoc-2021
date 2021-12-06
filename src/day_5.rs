@@ -113,88 +113,81 @@ fn create_diagram(lines: &[Line], filter: fn(&&Line) -> bool) -> HashMap<String,
         let start: u16;
         let end: u16;
         let on_x: bool;
-        let move_y: bool;
         let mut increase: bool = false;
-        let mut other: u16 = 0;
+        let mut special_y: u16 = 0;
         match l.direction {
             Direction::Up => {
                 start = l.end.y;
                 end = l.start.y;
                 on_x = false;
-                move_y = true;
             }
             Direction::Down => {
                 start = l.start.y;
                 end = l.end.y;
                 on_x = false;
-                move_y = true;
             }
             Direction::Left => {
                 start = l.end.x;
                 end = l.start.x;
                 on_x = true;
-                move_y = false;
             }
             Direction::Right => {
                 start = l.start.x;
                 end = l.end.x;
                 on_x = true;
-                move_y = false;
             }
             Direction::RightUp => {
                 start = l.start.x;
                 end = l.end.x;
-                other = l.start.y;
+                special_y = l.start.y;
                 on_x = true;
-                move_y = true;
                 increase = false;
             }
             Direction::RightDown => {
                 start = l.start.x;
                 end = l.end.x;
-                other = l.start.y;
+                special_y = l.start.y;
                 on_x = true;
-                move_y = true;
                 increase = true;
             }
             Direction::LeftUp => {
                 start = l.end.x;
                 end = l.start.x;
-                other = l.end.y;
+                special_y = l.end.y;
                 on_x = true;
-                move_y = true;
                 increase = true;
             }
             Direction::LeftDown => {
                 start = l.end.x;
                 end = l.start.x;
-                other = l.end.y;
+                special_y = l.end.y;
                 on_x = true;
-                move_y = true;
                 increase = false;
             }
         }
         (start..end + 1).for_each(|i| {
             let key: String;
-            match (on_x, move_y) {
-                // FIXME: This actually means use i in x and other in y
-                (true, true) => key = format!("{},{}", i, other),
-                (true, false) => key = format!("{},{}", i, l.start.y),
+            match (on_x, l.direction.is_normal()) {
+                // If is diagonal both coordinates have to move with different starts
+                // and directions
+                (true, false) => {
+                    key = format!("{},{}", i, special_y);
+
+                    //so this increase or decrease y depending of the direction
+                    match (increase, special_y) {
+                        (true, _) => special_y += 1,
+                        (false, y) if y != 0 => special_y -= 1,
+                        _ => {}
+                    }
+                }
+                (true, true) => key = format!("{},{}", i, l.start.y),
                 (false, true) => key = format!("{},{}", l.start.x, i),
-                // FIXME: This actually means use i in y and other in x
-                (false, false) => key = format!("{},{}", other, i),
+                _ => panic!("invalid case"),
             }
             match diagram.get_mut(&key) {
                 Some(v) => *v += 1,
                 None => {
                     diagram.insert(key, 1);
-                }
-            }
-            if i != end {
-                if increase {
-                    other += 1;
-                } else if !increase && on_x && move_y {
-                    other -= 1;
                 }
             }
         });
