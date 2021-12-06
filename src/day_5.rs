@@ -41,7 +41,6 @@ impl Run<Vec<Line>, u16> for Day5 {
         let lim: u16 = 2;
         Ok(diagram.into_iter().filter(|(_, v)| *v >= lim).count() as u16)
     }
-    // add code here
 }
 
 #[derive(Debug)]

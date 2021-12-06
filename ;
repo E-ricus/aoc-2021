@@ -20,18 +20,18 @@ impl Parse<Vec<usize>> for Day6 {
 
 impl RunMut<Vec<usize>, usize> for Day6 {
     fn part_one(input: &mut Vec<usize>) -> Result<usize> {
-        Ok(count_fish(input, 80))
+        count_fish(&mut input.clone(), 80)
     }
 
     fn part_two(input: &mut Vec<usize>) -> Result<usize> {
-        Ok(count_fish(input, 256))
+        count_fish(input, 256)
     }
 }
 
-// First attemp, not efficient enough for part 2
+// First attemp, not efficient
 #[allow(dead_code)]
 fn change_fish(input: &mut Vec<u16>, days: u16) {
-    (0..days).for_each(|_| {
+    for _ in 0..days {
         let mut new_fishes = Vec::new();
         for fish in input.iter_mut() {
             match fish {
@@ -45,19 +45,26 @@ fn change_fish(input: &mut Vec<u16>, days: u16) {
         if !new_fishes.is_empty() {
             input.append(&mut new_fishes);
         }
-    });
+    }
 }
 
-fn count_fish(input: &mut [usize], days: usize) -> usize {
-    (0..days).for_each(|_| {
-        // Move each count to one less day
-        // Making the fish at 0 becoming 8
-        input.rotate_left(1);
-        // Acumulate the fish that were on 0, now on 8 to 6
-        input[6] += input[8];
+fn count_fish(input: &mut [usize], days: usize) -> Result<usize> {
+    (1..days).for_each(|day| {
+        // TODO: Fully understand
+        let per_day = (day + 7) % 9;
+        let new_borns = day % 9;
+        input[per_day] += input[new_borns];
     });
 
-    input.iter().sum()
+    Ok(input.iter().sum::<usize>())
+}
+fn count_fish2(school: &mut [usize], days: usize) -> usize {
+    (0..8).cycle().take(days).for_each(|_| {
+        school.rotate_left(1);
+        school[6] += school[8];
+    });
+
+    school.iter().sum()
 }
 
 #[cfg(test)]
@@ -85,13 +92,15 @@ mod tests {
     #[test]
     fn test_count_fish() -> Result<()> {
         let mut input = Day6::parse_input(INPUT)?;
-        let count = count_fish(&mut input, 2);
+        let count = count_fish(&mut input, 2)?;
         assert_eq!(count, 6);
         let mut input = Day6::parse_input(INPUT)?;
-        let count = count_fish(&mut input, 3);
+        let count = count_fish(&mut input, 3)?;
         assert_eq!(count, 7);
         let mut input = Day6::parse_input(INPUT)?;
-        let count = count_fish(&mut input, 18);
+        let count = count_fish(&mut input.clone(), 18)?;
+        let count2 = count_fish2(&mut input, 18);
+        println!("{},{}", count, count2);
         assert_eq!(count, 26);
         Ok(())
     }
