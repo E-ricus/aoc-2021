@@ -29,7 +29,7 @@ impl Parse<Vec<Line>> for Day5 {
 
 impl Run<Vec<Line>, u16> for Day5 {
     fn part_one(input: &Vec<Line>) -> Result<u16> {
-        let filter = |x: &&Line| x.direction.is_normal();
+        let filter = |x: &&Line| x.direction.is_straight();
         let diagram = create_diagram(input, filter);
         let lim: u16 = 2;
         Ok(diagram.into_iter().filter(|(_, v)| *v >= lim).count() as u16)
@@ -97,7 +97,7 @@ impl Direction {
         }
     }
 
-    fn is_normal(&self) -> bool {
+    fn is_straight(&self) -> bool {
         matches!(
             self,
             Direction::Right | Direction::Down | Direction::Up | Direction::Left
@@ -106,6 +106,7 @@ impl Direction {
 }
 
 // TODO: There gotta be a better way to do this
+// Maybe use zip with a reverse iterator?
 fn create_diagram(lines: &[Line], filter: fn(&&Line) -> bool) -> HashMap<String, u16> {
     let mut diagram = HashMap::new();
     for l in lines.iter().filter(filter) {
@@ -115,58 +116,34 @@ fn create_diagram(lines: &[Line], filter: fn(&&Line) -> bool) -> HashMap<String,
         let mut increase: bool = false;
         let mut special_y: u16 = 0;
         match l.direction {
-            Direction::Up => {
-                start = l.end.y;
-                end = l.start.y;
+            Direction::Up | Direction::Down => {
+                start = std::cmp::min(l.start.y, l.end.y);
+                end = std::cmp::max(l.start.y, l.end.y);
                 on_x = false;
             }
-            Direction::Down => {
-                start = l.start.y;
-                end = l.end.y;
-                on_x = false;
-            }
-            Direction::Left => {
-                start = l.end.x;
-                end = l.start.x;
+            Direction::Left | Direction::Right => {
+                start = std::cmp::min(l.start.x, l.end.x);
+                end = std::cmp::max(l.start.x, l.end.x);
                 on_x = true;
             }
-            Direction::Right => {
-                start = l.start.x;
-                end = l.end.x;
-                on_x = true;
-            }
-            Direction::RightUp => {
-                start = l.start.x;
-                end = l.end.x;
-                special_y = l.start.y;
+            Direction::RightUp | Direction::LeftDown => {
+                start = std::cmp::min(l.start.x, l.end.x);
+                end = std::cmp::max(l.start.x, l.end.x);
+                special_y = std::cmp::max(l.start.y, l.end.y);
                 on_x = true;
                 increase = false;
             }
-            Direction::RightDown => {
-                start = l.start.x;
-                end = l.end.x;
-                special_y = l.start.y;
+            Direction::RightDown | Direction::LeftUp => {
+                start = std::cmp::min(l.start.x, l.end.x);
+                end = std::cmp::max(l.start.x, l.end.x);
+                special_y = std::cmp::min(l.start.y, l.end.y);
                 on_x = true;
                 increase = true;
-            }
-            Direction::LeftUp => {
-                start = l.end.x;
-                end = l.start.x;
-                special_y = l.end.y;
-                on_x = true;
-                increase = true;
-            }
-            Direction::LeftDown => {
-                start = l.end.x;
-                end = l.start.x;
-                special_y = l.end.y;
-                on_x = true;
-                increase = false;
             }
         }
-        (start..end + 1).for_each(|i| {
+        (start..=end).for_each(|i| {
             let key: String;
-            match (on_x, l.direction.is_normal()) {
+            match (on_x, l.direction.is_straight()) {
                 // If is diagonal both coordinates have to move with different starts
                 // and directions
                 (true, false) => {
@@ -285,7 +262,7 @@ mod tests_day5 {
     #[test]
     fn test_create_diagram() -> Result<()> {
         let input = Day5::parse_input(INPUT)?;
-        let filter = |x: &&Line| x.direction.is_normal();
+        let filter = |x: &&Line| x.direction.is_straight();
         let diagram = create_diagram(&input, filter);
         assert_eq!(diagram.len(), 21);
         assert_eq!(diagram.get("0,9"), Some(&2));
