@@ -6,12 +6,7 @@ pub struct Day1 {}
 
 impl Parse<Vec<i32>> for Day1 {
     fn parse_input(input: &str) -> Result<Vec<i32>> {
-        let r = input
-            .lines()
-            .into_iter()
-            .filter_map(|s| s.parse().ok())
-            .collect();
-        Ok(r)
+        Ok(input.lines().filter_map(|s| s.parse().ok()).collect())
     }
 }
 impl Run<Vec<i32>, i32> for Day1 {
