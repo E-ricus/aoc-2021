@@ -49,13 +49,11 @@ impl Run<Vec<Vec<char>>, isize> for Day3 {
 fn count(input: &[Vec<char>], i: usize) -> (u32, u32) {
     let mut ones: u32 = 0;
     let mut zeros: u32 = 0;
-    for line in input {
-        match line[i] {
-            '0' => zeros += 1,
-            '1' => ones += 1,
-            _ => panic!("invalid input"),
-        }
-    }
+    input.iter().for_each(|line| match line[i] {
+        '0' => zeros += 1,
+        '1' => ones += 1,
+        _ => panic!("invalid input"),
+    });
     (ones, zeros)
 }
 
@@ -63,7 +61,7 @@ fn binaries_for_power(input: &[Vec<char>]) -> Result<(String, String)> {
     let mut gama = String::new();
     let mut epsilon = String::new();
     let len = input[0].len();
-    for i in 0..len {
+    (0..len).for_each(|i| {
         let (ones, zeros) = count(input, i);
         if ones > zeros {
             gama.push('1');
@@ -72,7 +70,7 @@ fn binaries_for_power(input: &[Vec<char>]) -> Result<(String, String)> {
             gama.push('0');
             epsilon.push('1');
         }
-    }
+    });
     Ok((gama, epsilon))
 }
 

@@ -16,26 +16,26 @@ impl Parse<Vec<i32>> for Day1 {
 }
 impl Run<Vec<i32>, i32> for Day1 {
     fn part_one(input: &Vec<i32>) -> Result<i32> {
-        Ok(count_increased(input.to_vec()))
+        Ok(count_increased(input))
     }
 
     fn part_two(input: &Vec<i32>) -> Result<i32> {
-        Ok(count_increased(clean_measures(input.to_vec())))
+        Ok(count_increased(&clean_measures(input)))
     }
 }
 
-fn count_increased(measures: Vec<i32>) -> i32 {
+fn count_increased(measures: &[i32]) -> i32 {
     let mut count = -1;
-    measures.into_iter().fold(0, |acc, m| {
-        if m > acc {
+    measures.iter().fold(0, |acc, m| {
+        if m > &acc {
             count += 1;
         }
-        m
+        *m
     });
     count
 }
 
-fn clean_measures(measures: Vec<i32>) -> Vec<i32> {
+fn clean_measures(measures: &[i32]) -> Vec<i32> {
     let mut new_measurents = Vec::new();
     for (i, m) in measures.iter().enumerate() {
         if i + 2 < measures.len() {
@@ -62,14 +62,14 @@ mod tests_day1 {
     #[test]
     fn test_count_increased() {
         let measures = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
-        let count = count_increased(measures);
+        let count = count_increased(&measures);
         assert_eq!(7, count);
     }
 
     #[test]
     fn test_clean_measunes() {
         let measures = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
-        let count = clean_measures(measures);
+        let count = clean_measures(&measures);
         assert_eq!(8, count.len());
         let mut it = count.into_iter();
         assert_eq!(607, it.next().unwrap());

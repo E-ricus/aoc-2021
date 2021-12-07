@@ -23,13 +23,11 @@ impl Run<Vec<Movements>, u32> for Day2 {
     fn part_one(input: &Vec<Movements>) -> Result<u32> {
         let mut x_pos = 0;
         let mut y_pos = 0;
-        for movement in input {
-            match movement {
-                Movements::Forward(x) => x_pos += x,
-                Movements::Down(x) => y_pos += x,
-                Movements::Up(x) => y_pos -= x,
-            }
-        }
+        input.iter().for_each(|movement| match movement {
+            Movements::Forward(x) => x_pos += x,
+            Movements::Down(x) => y_pos += x,
+            Movements::Up(x) => y_pos -= x,
+        });
         Ok(x_pos * y_pos)
     }
 
@@ -37,16 +35,14 @@ impl Run<Vec<Movements>, u32> for Day2 {
         let mut x_pos = 0;
         let mut y_pos = 0;
         let mut aim = 0;
-        for movement in input {
-            match movement {
-                Movements::Forward(x) => {
-                    x_pos += x;
-                    y_pos += aim * x;
-                }
-                Movements::Down(x) => aim += x,
-                Movements::Up(x) => aim -= x,
+        input.iter().for_each(|movement| match movement {
+            Movements::Forward(x) => {
+                x_pos += x;
+                y_pos += aim * x;
             }
-        }
+            Movements::Down(x) => aim += x,
+            Movements::Up(x) => aim -= x,
+        });
         Ok(x_pos * y_pos)
     }
 }
