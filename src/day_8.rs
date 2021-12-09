@@ -23,14 +23,13 @@ impl<'a> ParseWithLifeTime<'a, Vec<Metric<'a>>> for Day8 {
 impl Run<Vec<Metric<'_>>, usize> for Day8 {
     fn part_one(input: &Vec<Metric<'_>>) -> Result<usize> {
         let known_lenghts: Vec<usize> = vec![2, 3, 4, 7];
-        let count = input.iter().fold(0, |mut acc, m| {
+        let count = input.iter().fold(0, |acc, m| {
             let sum = m
                 .output
                 .iter()
                 .filter(|o| known_lenghts.contains(&o.len()))
                 .count();
-            acc += sum;
-            acc
+            acc + sum
         });
         Ok(count)
     }
@@ -55,10 +54,7 @@ impl Run<Vec<Metric<'_>>, usize> for Day8 {
                     .parse::<usize>()
             })
             .flatten()
-            .fold(0, |mut acc, sum| {
-                acc += sum;
-                acc
-            });
+            .sum();
         Ok(r)
     }
 }

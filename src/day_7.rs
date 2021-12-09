@@ -18,10 +18,9 @@ impl RunMut<Vec<i32>, i32> for Day7 {
     fn part_one(input: &mut Vec<i32>) -> Result<i32> {
         input.sort_unstable();
         let mid = input[input.len() / 2];
-        let fuel = input.iter().fold(0, |mut acc, n| {
+        let fuel = input.iter().fold(0, |acc, n| {
             let diff = (mid - n).abs();
-            acc += diff;
-            acc
+            acc + diff
         });
         Ok(fuel)
     }
@@ -65,10 +64,9 @@ impl RunMut<Vec<i32>, i32> for Day7 {
 }
 
 fn expensive_fuel(input: &[i32], pos: i32) -> i32 {
-    input.iter().fold(0, |mut acc, n| {
+    input.iter().fold(0, |acc, n| {
         let diff = (pos - n).abs();
-        acc += (1..=diff).into_iter().sum::<i32>();
-        acc
+        acc + (1..=diff).into_iter().sum::<i32>()
     })
 }
 
