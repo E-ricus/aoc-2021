@@ -4,7 +4,6 @@ use anyhow::Result;
 
 use crate::runner::{ParseWithLifeTime, Run};
 
-// FIXME: ALL THE SECOND PART IMPL IS HORRIBLE
 pub struct Day8 {}
 
 impl<'a> ParseWithLifeTime<'a, Vec<Metric<'a>>> for Day8 {
@@ -23,12 +22,12 @@ impl<'a> ParseWithLifeTime<'a, Vec<Metric<'a>>> for Day8 {
 
 impl Run<Vec<Metric<'_>>, usize> for Day8 {
     fn part_one(input: &Vec<Metric<'_>>) -> Result<usize> {
-        let basic_digits: Vec<usize> = vec![2, 3, 4, 7];
+        let known_lenghts: Vec<usize> = vec![2, 3, 4, 7];
         let count = input.iter().fold(0, |mut acc, m| {
             let sum = m
                 .output
                 .iter()
-                .filter(|o| basic_digits.contains(&o.len()))
+                .filter(|o| known_lenghts.contains(&o.len()))
                 .count();
             acc += sum;
             acc
@@ -37,19 +36,29 @@ impl Run<Vec<Metric<'_>>, usize> for Day8 {
     }
 
     fn part_two(input: &Vec<Metric<'_>>) -> Result<usize> {
-        let r = input.iter().fold(0, |mut acc, m| {
-            let codex = find_codex_on_input(&m.input).unwrap();
-            let mut value = String::new();
-            m.output.iter().for_each(|o| {
-                let (_, v) = codex
+        let r = input
+            .iter()
+            .filter_map(|m| Some((find_codex_on_input(&m.input)?, &m.output)))
+            .map(|(codex, output)| {
+                output
                     .iter()
-                    .find(|(k, _)| contains_all_equal(k, o))
-                    .unwrap();
-                value.push(*v);
+                    .map(|o| {
+                        codex
+                            .iter()
+                            .find(|(k, _)| contains_all(k, o) && k.len() == o.len())
+                    })
+                    .flatten()
+                    .fold(String::new(), |mut value, (_, v)| {
+                        value.push(*v);
+                        value
+                    })
+                    .parse::<usize>()
+            })
+            .flatten()
+            .fold(0, |mut acc, sum| {
+                acc += sum;
+                acc
             });
-            acc += value.parse::<usize>().unwrap();
-            acc
-        });
         Ok(r)
     }
 }
@@ -71,62 +80,52 @@ impl Day8 {
 fn find_codex_on_input<'a>(input: &'a [&str]) -> Option<HashMap<&'a str, char>> {
     let known_index = HashMap::from([(2, '1'), (4, '4'), (3, '7'), (7, '8')]);
     let mut codex = HashMap::with_capacity(10);
-    let mut found = HashMap::with_capacity(10);
+    let mut four = "";
     let mut group_six = Vec::new();
     let mut group_five = Vec::new();
-    // let mut group_six = HashMap::new();
-    // let mut group_five = HashMap::new();
     for entry in input {
         let len = entry.len();
         match len {
+            4 => {
+                codex.insert(*entry, '4');
+                four = *entry;
+            }
             5 => {
-                // group_five.insert(len, *entry);
                 group_five.push(*entry);
             }
             6 => {
-                // group_six.insert(len, *entry);
                 group_six.push(*entry);
             }
             _ => {
                 codex.insert(*entry, known_index[&len]);
-                found.insert(known_index[&len], *entry);
             }
         }
     }
     // Nine is the only one on grop six that contains all 4
-    let index = group_six
-        .iter()
-        .position(|e| contains_all(e, found[&'4']))?;
+    let index = group_six.iter().position(|e| contains_all(e, four))?;
     let number = group_six.swap_remove(index);
-    found.insert('9', number);
     codex.insert(number, '9');
 
     // two is the only one on grop five that contains nine but for one
     let index = group_five
         .iter()
-        .position(|e| contains_but_one(e, found[&'9']))?;
+        .position(|e| contains_but_one(e, number))?;
     let number = group_five.swap_remove(index);
-    found.insert('2', number);
     codex.insert(number, '2');
 
     // three is the only one on group five that contains two but for one
     let index = group_five
         .iter()
-        .position(|e| contains_but_one(e, found[&'2']))?;
+        .position(|e| contains_but_one(e, number))?;
     let number = group_five.swap_remove(index);
-    found.insert('3', number);
     codex.insert(number, '3');
     // five is the remaining one on the group
     let number = group_five.pop()?;
-    found.insert('5', number);
     codex.insert(number, '5');
 
     // six contains all 5
-    let index = group_six
-        .iter()
-        .position(|e| contains_all(e, found[&'5']))?;
+    let index = group_six.iter().position(|e| contains_all(e, number))?;
     let number = group_six.swap_remove(index);
-    found.insert('6', number);
     codex.insert(number, '6');
     // zero is the remaining one on the group
     let number = group_six.pop()?;
@@ -135,36 +134,12 @@ fn find_codex_on_input<'a>(input: &'a [&str]) -> Option<HashMap<&'a str, char>> 
     Some(codex)
 }
 
-// Why it doesn't work with iterators?
 fn contains_but_one(a: &str, b: &str) -> bool {
-    let mut count = 0;
-    for c in a.chars() {
-        if !b.contains(c) {
-            count += 1;
-        }
-    }
-    count == 1
-    // a.chars().filter(|c| !b.contains(c)).count() == 1
+    a.chars().filter(|c| !b.contains(*c)).count() == 1
 }
 
 fn contains_all(a: &str, b: &str) -> bool {
-    let mut count = 0;
-    for c in a.chars() {
-        if b.contains(c) {
-            count += 1;
-        }
-    }
-    count == b.len()
-}
-
-fn contains_all_equal(a: &str, b: &str) -> bool {
-    let mut count = 0;
-    for c in a.chars() {
-        if b.contains(c) {
-            count += 1;
-        }
-    }
-    count == b.len() && a.len() == b.len()
+    a.chars().filter(|c| b.contains(*c)).count() == b.len()
 }
 
 #[derive(Debug)]
