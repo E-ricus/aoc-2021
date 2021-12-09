@@ -67,7 +67,7 @@ impl RunMut<Vec<i32>, i32> for Day7 {
 fn expensive_fuel(input: &[i32], pos: i32) -> i32 {
     input.iter().fold(0, |mut acc, n| {
         let diff = (pos - n).abs();
-        acc += (1..diff + 1).into_iter().sum::<i32>();
+        acc += (1..=diff).into_iter().sum::<i32>();
         acc
     })
 }

@@ -11,10 +11,16 @@ pub trait Parse<I> {
     fn parse_input(input: &str) -> Result<I>;
 }
 
+pub trait ParseWithLifeTime<'a, I> {
+    fn parse_input(input: &'a str) -> Result<I>;
+}
+
 pub trait RunMut<I, R> {
     fn part_one(input: &mut I) -> Result<R>;
     fn part_two(input: &mut I) -> Result<R>;
 }
+
+// There's gotta be better way to implement this, than to have a traits per implementation
 
 pub trait Executor<I, R, T>
 where
