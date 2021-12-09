@@ -6,6 +6,7 @@ mod day_5;
 mod day_6;
 mod day_7;
 mod day_8;
+mod day_9;
 mod runner;
 
 use anyhow::Result;
@@ -17,7 +18,9 @@ use day_5::Day5;
 use day_6::Day6;
 use day_7::Day7;
 use day_8::Day8;
-use runner::{Executor, MutExecutor};
+use day_9::Day9;
+use runner::Executor;
+use runner::MutExecutor;
 
 fn main() -> Result<()> {
     Day1::run("inputs/day1.input")?;
@@ -28,5 +31,6 @@ fn main() -> Result<()> {
     Day6::run("inputs/day6.input")?;
     Day7::run("inputs/day7.input")?;
     Day8::run("inputs/day8.input")?;
+    Day9::run("inputs/day9.input")?;
     Ok(())
 }

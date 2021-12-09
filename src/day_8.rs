@@ -149,7 +149,7 @@ pub struct Metric<'a> {
 }
 
 #[cfg(test)]
-mod tests {
+mod tests_day8 {
     use super::*;
 
     const INPUT: &str = include_str!("../inputs/day8.test");
