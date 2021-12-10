@@ -31,13 +31,13 @@ fn count_increased(measures: &[i32]) -> i32 {
 }
 
 fn clean_measures(measures: &[i32]) -> Vec<i32> {
-    let mut new_measurents = Vec::new();
+    let mut new_measurements = Vec::new();
     for (i, m) in measures.iter().enumerate() {
         if i + 2 < measures.len() {
-            new_measurents.push(m + measures[i + 1] + measures[i + 2])
+            new_measurements.push(m + measures[i + 1] + measures[i + 2])
         }
     }
-    new_measurents
+    new_measurements
 }
 
 #[cfg(test)]
@@ -62,7 +62,7 @@ mod tests_day1 {
     }
 
     #[test]
-    fn test_clean_measunes() {
+    fn test_clean_measures() {
         let measures = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
         let count = clean_measures(&measures);
         assert_eq!(8, count.len());
