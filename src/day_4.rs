@@ -136,7 +136,7 @@ enum State {
     Unmarked,
 }
 
-fn bingo_winner(numbers: &[u16], boards: &mut Vec<Board>) -> Option<(Board, u16)> {
+fn bingo_winner(numbers: &[u16], boards: &mut [Board]) -> Option<(Board, u16)> {
     for num in numbers {
         for b in boards.iter_mut() {
             b.set_number(*num);
@@ -148,7 +148,7 @@ fn bingo_winner(numbers: &[u16], boards: &mut Vec<Board>) -> Option<(Board, u16)
     None
 }
 
-fn bingo_last_winner(numbers: &[u16], boards: &mut Vec<Board>) -> Option<(Board, u16)> {
+fn bingo_last_winner(numbers: &[u16], boards: &mut [Board]) -> Option<(Board, u16)> {
     let board_num = boards.len();
     let mut wins = 0;
     // let mut winners: Vec<usize> = Vec::new();

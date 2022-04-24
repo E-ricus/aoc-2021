@@ -21,22 +21,12 @@ impl Run<Vec<Vec<char>>, isize> for Day3 {
 
     fn part_two(input: &Vec<Vec<char>>) -> Result<isize> {
         let des = |ones: u32, zeros: u32| -> char {
-            let ch: char;
-            if ones >= zeros {
-                ch = '0';
-            } else {
-                ch = '1';
-            }
+            let ch: char = if ones >= zeros { '0' } else { '1' };
             ch
         };
         let oxigen = binaries_for_life(input.to_vec(), des)?;
         let des = |ones: u32, zeros: u32| -> char {
-            let ch: char;
-            if ones >= zeros {
-                ch = '1';
-            } else {
-                ch = '0';
-            }
+            let ch: char = if ones >= zeros { '1' } else { '0' };
             ch
         };
         let co_scrubber = binaries_for_life(input.to_vec(), des)?;
@@ -130,12 +120,7 @@ mod tests_day3 {
     fn test_binaries_for_life_oxygen() -> Result<()> {
         let input = Day3::parse_input(INPUT)?;
         let des = |ones: u32, zeros: u32| -> char {
-            let ch: char;
-            if ones >= zeros {
-                ch = '1';
-            } else {
-                ch = '0';
-            }
+            let ch: char = if ones >= zeros { '1' } else { '0' };
             ch
         };
         let ox = binaries_for_life(input, des)?;
@@ -147,12 +132,7 @@ mod tests_day3 {
     fn test_binaries_for_life_co() -> Result<()> {
         let input = Day3::parse_input(INPUT)?;
         let des = |ones: u32, zeros: u32| -> char {
-            let ch: char;
-            if ones >= zeros {
-                ch = '0';
-            } else {
-                ch = '1';
-            }
+            let ch: char = if ones >= zeros { '0' } else { '1' };
             ch
         };
         let co = binaries_for_life(input, des)?;

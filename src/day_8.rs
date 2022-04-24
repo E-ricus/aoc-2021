@@ -38,22 +38,20 @@ impl Run<Vec<Metric<'_>>, usize> for Day8 {
         let r = input
             .iter()
             .filter_map(|m| Some((find_codex_on_input(&m.input)?, &m.output)))
-            .map(|(codex, output)| {
+            .flat_map(|(codex, output)| {
                 output
                     .iter()
-                    .map(|o| {
+                    .filter_map(|o| {
                         codex
                             .iter()
                             .find(|(k, _)| contains_all(k, o) && k.len() == o.len())
                     })
-                    .flatten()
                     .fold(String::new(), |mut value, (_, v)| {
                         value.push(*v);
                         value
                     })
                     .parse::<usize>()
             })
-            .flatten()
             .sum();
         Ok(r)
     }

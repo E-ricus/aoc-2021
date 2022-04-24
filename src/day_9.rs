@@ -13,8 +13,7 @@ impl Parse<Vec<Vec<u32>>> for Day9 {
             .map(|s| {
                 s.chars()
                     .into_iter()
-                    .map(|c| c.to_digit(10))
-                    .flatten()
+                    .filter_map(|c| c.to_digit(10))
                     .collect()
             })
             .collect();
@@ -42,13 +41,12 @@ impl Run<Vec<Vec<u32>>, u32> for Day9 {
         let mut basins: Vec<u32> = input
             .iter()
             .enumerate()
-            .map(move |(i, line)| {
+            .flat_map(move |(i, line)| {
                 line.iter()
                     .enumerate()
                     .filter(move |(j, n)| is_lowest_adjacent(*n, i, *j, input))
                     .map(move |(j, _)| basin_size(i, j, input))
             })
-            .flatten()
             .collect();
         basins.sort_unstable();
         let r: u32 = basins.into_iter().rev().take(3).product();
